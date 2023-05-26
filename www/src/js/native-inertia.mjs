@@ -1,9 +1,53 @@
 import axios from 'axios';
 
+const convertUrlToParam = url => {
+  if (window.location.protocol !== 'file:') {
+    return url
+  }
+  const base = window.location.href.split('?inertia-url=')[0];
+  const param = url.replace(base, '')
+  return `${base}?inertia-url=${encodeURIComponent(param)}`
+}
+
+const convertParamToUrl = param => {
+  if (window.location.protocol !== 'file:') {
+    return param
+  }
+  return '/' + decodeURIComponent(
+    param
+      .replace(window.location.href
+        .replace('index.html', '')
+        .split('?inertia-url=')[0], ''
+      )
+      .replace('?inertia-url=', '')
+      .replace('index.html', '')) || '/'
+}
+
+if (window.location.protocol === 'file:') {
+  const originalReplaceState = window.history.replaceState;
+
+  window.history.replaceState = function (state, title, url) {
+    // for file:// URLs, only modify the fragment
+    const newUrl = convertUrlToParam(url);
+    originalReplaceState.call(window.history, state, title, newUrl);
+  };
+};
+
+if (window.location.protocol === 'file:') {
+  const originalPushState = window.history.pushState;
+
+  window.history.pushState = function (state, title, url) {
+    // for file:// URLs, only modify the fragment
+    const newUrl = convertUrlToParam(url);
+    originalPushState.call(window.history, state, title, newUrl);
+  };
+}
+
+
 const getFakeError = config => {
   const mockError = new Error();
   mockError.response = {
-    data: { "component": "Home", "props": { "errors": {}, "appName": "Something" }, "url": "\/", "version": "no-version" },
+    data: { "component": "App", "props": {}, "url": "/", "version": "" },
     status: 200,
     statusText: 'OK'
   };
@@ -15,8 +59,9 @@ const isFakeError = error => Boolean(error.response);
 
 const getResponseFromEvent = async (mockError) => {
   const { config } = mockError;
-  // console.log('axios sending native-inertia event', config)
-  window.webkit?.messageHandlers['native-inertia']?.postMessage(JSON.stringify(config));
+  const updatedConfig = { ...config, url: convertParamToUrl(config.url) };
+  // console.log('axios sending native-inertia event', updatedConfig)
+  window.webkit?.messageHandlers['native-inertia']?.postMessage(JSON.stringify(updatedConfig));
 
   // Wait for event that contains the real response
   const response = await new Promise(resolve => {
@@ -47,7 +92,7 @@ const getResponseFromEvent = async (mockError) => {
 
 // // Add a request interceptor
 axios.interceptors.request.use(config => {
-  // console.log('axios mocking ' + config.url);
+  // console.log('axios mocking ' + config);
   return getFakeError(config);
 }, error => Promise.reject(error));
 
