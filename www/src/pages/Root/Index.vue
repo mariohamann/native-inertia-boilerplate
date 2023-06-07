@@ -5,20 +5,18 @@ let props = defineProps<{
 	time: string;
 }>();
 
+let count = window["count"];
+
 const handleClick = () => {
-	const start = Date.now().toString();
-	window["start"] = start;
+	window["start"] = Date.now().toString();
+	window["count"] = 0;
 	router.get("/");
-	console.count("fetch" + start);
 };
 
-if (window.localStorage.getItem("start")) {
-	const start = parseInt(window["start"]);
-	const now = Date.now();
-	const diff = now - start;
-	if (diff < 10000) {
+if (window["start"]) {
+	if (Date.now() - parseInt(window["start"]) < 10000) {
+		window["count"]++;
 		router.get("/");
-		console.count("fetch" + start);
 	}
 }
 </script>
@@ -29,6 +27,7 @@ if (window.localStorage.getItem("start")) {
 	<main>
 		<h1>Loaded: {{ props.time }}</h1>
 		<button @click="handleClick">Loop it!</button>
+		<h2>{{ count }}</h2>
 	</main>
 </template>
 

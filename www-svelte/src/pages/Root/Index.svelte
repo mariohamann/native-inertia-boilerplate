@@ -10,17 +10,14 @@
 
 	const handleClick = () => {
 		count.set(0);
-		const startTime = Date.now().toString();
-		start.set(startTime);
+		start.set(Date.now().toString());
 		router.get("/");
 	};
 
 	router.on("success", (event) => {
 		if ($start) {
 			count.set($count + 1);
-			const now = Date.now();
-			const diff = now - parseInt($start);
-			if (diff < 10000) {
+			if (Date.now() - parseInt($start) < 10000) {
 				router.get("/");
 			}
 		}
