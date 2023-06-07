@@ -29,6 +29,7 @@ class Inertia {
 
   static func setup(webView: WKWebView, router: InertiaRouter) -> WKWebView {
     webView.configuration.userContentController.add(router, name: "native-inertia")
+    if #available(iOS 16.4, *) { webView.isInspectable = true; }
 
     if let useLocalFileString = ProcessInfo.processInfo.environment["useLocalFile"],
       let _ =

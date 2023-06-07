@@ -1,14 +1,5 @@
 import axios from 'axios';
 
-const convertUrlToParam = url => {
-  if (window.location.protocol !== 'file:') {
-    return url
-  }
-  const base = window.location.href.split('?inertia-url=')[0];
-  const param = url.replace(base, '')
-  return `${base}?inertia-url=${encodeURIComponent(param)}`
-}
-
 const convertParamToUrl = param => {
   if (window.location.protocol !== 'file:') {
     return param
@@ -23,25 +14,13 @@ const convertParamToUrl = param => {
       .replace('index.html', '')) || '/'
 }
 
-if (window.location.protocol === 'file:') {
-  const originalReplaceState = window.history.replaceState;
-
-  window.history.replaceState = function (state, title, url) {
-    // for file:// URLs, only modify the fragment
-    const newUrl = convertUrlToParam(url);
-    originalReplaceState.call(window.history, state, title, newUrl);
-  };
+window.history.replaceState = function () {
+  return;
 };
 
-if (window.location.protocol === 'file:') {
-  const originalPushState = window.history.pushState;
-
-  window.history.pushState = function (state, title, url) {
-    // for file:// URLs, only modify the fragment
-    const newUrl = convertUrlToParam(url);
-    originalPushState.call(window.history, state, title, newUrl);
-  };
-}
+window.history.pushState = function () {
+  return;
+};
 
 
 const getFakeError = config => {
